@@ -1,0 +1,120 @@
+<%- include('partials/header') %>
+
+<div class="single-post-container">
+    <div class="back-link-wrapper">
+        <a href="javascript:history.back()" class="btn btn-outline btn-sm">
+            <i class="fa-solid fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <article class="post-card single-post-card">
+        <!-- Post Author Header -->
+        <div class="post-header">
+            <a href="/profile/<%= post.username %>" class="post-author-info">
+                <img src="<%= post.avatar_url %>" alt="<%= post.username %>" class="user-avatar avatar-lg">
+                <div class="author-details">
+                    <span class="author-name">@<%= post.username %></span>
+                    <span class="post-time" title="<%= new Date(post.created_at).toLocaleString() %>">
+                        <i class="fa-regular fa-clock"></i> <%= new Date(post.created_at).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) %>
+                    </span>
+                </div>
+            </a>
+
+            <% if (currentUser && currentUser.id === post.user_id) { %>
+                <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Delete this post?');">
+                    <button type="submit" class="btn btn-danger btn-sm" title="Delete Post">
+                        <i class="fa-solid fa-trash-can"></i> Delete Post
+                    </button>
+                </form>
+            <% } %>
+        </div>
+
+        <!-- Post Content -->
+        <div class="post-content single-post-content">
+            <p><%- post.content.replace(/\n/g, '<br>') %></p>
+
+            <% if (post.image_url) { %>
+                <div class="post-image-container single-post-image">
+                    <img src="<%= post.image_url %>" alt="Post attachment">
+                </div>
+            <% } %>
+        </div>
+
+        <!-- Post Stats & Actions Row -->
+        <div class="post-actions single-post-actions">
+            <form action="/posts/<%= post.id %>/like" method="POST" class="like-form" data-post-id="<%= post.id %>">
+                <button type="submit" class="action-btn like-btn <%= post.is_liked ? 'liked' : '' %>">
+                    <i class="<%= post.is_liked ? 'fa-solid' : 'fa-regular' %> fa-heart"></i>
+                    <span class="like-count"><%= post.like_count %> Likes</span>
+                </button>
+            </form>
+
+            <div class="action-btn comment-count-display">
+                <i class="fa-regular fa-comment"></i>
+                <span><%= post.comment_count %> Comments</span>
+            </div>
+        </div>
+
+        <!-- Full Comments Section -->
+        <section class="comments-section">
+            <h3 class="comments-heading"><i class="fa-solid fa-comments"></i> Discussion (<%= post.comments.length %>)</h3>
+
+            <!-- Comment Input Box -->
+            <% if (currentUser) { %>
+                <div class="add-comment-card">
+                    <img src="<%= currentUser.avatar_url %>" alt="<%= currentUser.username %>" class="avatar-sm">
+                    <form action="/posts/<%= post.id %>/comments" method="POST" class="add-comment-form">
+                        <textarea name="content" rows="2" class="form-control" placeholder="Add a comment to this discussion..." required></textarea>
+                        <div class="comment-submit-row">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="fa-solid fa-paper-plane"></i> Comment
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            <% } else { %>
+                <div class="comment-guest-prompt">
+                    <p><a href="/login">Log in</a> or <a href="/register">Register</a> to leave a comment.</p>
+                </div>
+            <% } %>
+
+            <!-- Comments List -->
+            <% if (post.comments.length === 0) { %>
+                <div class="no-comments">
+                    <p>No comments on this post yet. Be the first to start the conversation!</p>
+                </div>
+            <% } else { %>
+                <div class="comments-full-list">
+                    <% post.comments.forEach(comment => { %>
+                        <div class="full-comment-card">
+                            <a href="/profile/<%= comment.username %>" class="comment-avatar-link">
+                                <img src="<%= comment.avatar_url %>" alt="<%= comment.username %>" class="avatar-sm">
+                            </a>
+                            <div class="comment-body">
+                                <div class="comment-header-row">
+                                    <a href="/profile/<%= comment.username %>" class="comment-username">
+                                        @<%= comment.username %>
+                                    </a>
+                                    <span class="comment-time">
+                                        <%= new Date(comment.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                                    </span>
+                                </div>
+                                <p class="comment-content-text"><%= comment.content %></p>
+                            </div>
+
+                            <% if (currentUser && (currentUser.id === comment.user_id || currentUser.id === post.user_id)) { %>
+                                <form action="/posts/<%= post.id %>/comments/<%= comment.id %>/delete" method="POST" class="delete-comment-form" onsubmit="return confirm('Delete this comment?');">
+                                    <button type="submit" class="btn-icon text-danger" title="Delete comment">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+        </section>
+    </article>
+</div>
+
+<%- include('partials/footer') %>

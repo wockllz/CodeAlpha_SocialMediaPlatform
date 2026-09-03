@@ -1,0 +1,43 @@
+<%- include('partials/header') %>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-icon">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h2>Welcome Back</h2>
+            <p>Log in to connect with creators and share your code journey</p>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-danger">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span><%= error %></span>
+            </div>
+        <% } %>
+
+        <form action="/login" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="loginKey"><i class="fa-solid fa-user"></i> Username or Email</label>
+                <input type="text" id="loginKey" name="loginKey" class="form-control" placeholder="alex_dev or alex@example.com" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="password"><i class="fa-solid fa-key"></i> Password</label>
+                <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                <span>Login</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="/register">Create Account</a></p>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

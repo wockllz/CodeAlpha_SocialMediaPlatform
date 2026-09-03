@@ -1,0 +1,211 @@
+<%- include('partials/header') %>
+
+<div class="feed-container">
+    <!-- Left / Main Feed Column -->
+    <div class="feed-main">
+
+        <!-- Feed Navigation Tabs -->
+        <div class="feed-tabs">
+            <a href="/?feed=all" class="tab-item <%= feedType === 'all' ? 'active' : '' %>">
+                <i class="fa-solid fa-globe"></i> All Posts
+            </a>
+            <% if (currentUser) { %>
+                <a href="/?feed=following" class="tab-item <%= feedType === 'following' ? 'active' : '' %>">
+                    <i class="fa-solid fa-user-group"></i> Following
+                </a>
+            <% } %>
+        </div>
+
+        <!-- Post Creation Form Card -->
+        <% if (currentUser) { %>
+            <div class="create-post-card">
+                <div class="create-post-header">
+                    <img src="<%= currentUser.avatar_url %>" alt="<%= currentUser.username %>" class="user-avatar">
+                    <span class="create-post-title">Share something with the community...</span>
+                </div>
+                <form action="/posts" method="POST" class="create-post-form">
+                    <textarea name="content" class="form-control post-input" rows="3" placeholder="What's happening in your dev world today?" required></textarea>
+                    
+                    <div class="create-post-actions">
+                        <div class="image-input-wrapper">
+                            <i class="fa-solid fa-image"></i>
+                            <input type="url" name="image_url" placeholder="Optional image URL (https://...)" class="form-control-sm">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fa-solid fa-paper-plane"></i> Post
+                        </button>
+                    </div>
+                </form>
+            </div>
+        <% } else { %>
+            <div class="guest-banner">
+                <div class="guest-banner-content">
+                    <h3>Join the conversation!</h3>
+                    <p>Log in or register to publish posts, like content, and follow fellow developers.</p>
+                </div>
+                <div class="guest-banner-buttons">
+                    <a href="/login" class="btn btn-secondary btn-sm">Login</a>
+                    <a href="/register" class="btn btn-primary btn-sm">Register</a>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- Posts List -->
+        <% if (posts.length === 0) { %>
+            <div class="empty-feed">
+                <i class="fa-solid fa-comments"></i>
+                <h3>No posts found</h3>
+                <p><%= feedType === 'following' ? "You aren't following anyone with posts yet, or users haven't posted." : "Be the first to share a post!" %></p>
+            </div>
+        <% } else { %>
+            <div class="posts-feed">
+                <% posts.forEach(post => { %>
+                    <article class="post-card" id="post-<%= post.id %>">
+                        <!-- Post Header -->
+                        <div class="post-header">
+                            <a href="/profile/<%= post.username %>" class="post-author-info">
+                                <img src="<%= post.avatar_url %>" alt="<%= post.username %>" class="user-avatar">
+                                <div class="author-details">
+                                    <span class="author-name">@<%= post.username %></span>
+                                    <span class="post-time" title="<%= new Date(post.created_at).toLocaleString() %>">
+                                        <i class="fa-regular fa-clock"></i> <%= new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                                    </span>
+                                </div>
+                            </a>
+
+                            <% if (currentUser && currentUser.id === post.user_id) { %>
+                                <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Delete this post?');">
+                                    <button type="submit" class="btn-icon text-danger" title="Delete Post">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+
+                        <!-- Post Body -->
+                        <div class="post-content">
+                            <p><%- post.content.replace(/\n/g, '<br>') %></p>
+                            <% if (post.image_url) { %>
+                                <div class="post-image-container">
+                                    <img src="<%= post.image_url %>" alt="Post attachment" class="post-image" loading="lazy">
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <!-- Post Actions Row -->
+                        <div class="post-actions">
+                            <!-- Like Button -->
+                            <form action="/posts/<%= post.id %>/like" method="POST" class="like-form" data-post-id="<%= post.id %>">
+                                <button type="submit" class="action-btn like-btn <%= post.is_liked ? 'liked' : '' %>">
+                                    <i class="<%= post.is_liked ? 'fa-solid' : 'fa-regular' %> fa-heart"></i>
+                                    <span class="like-count"><%= post.like_count %></span>
+                                </button>
+                            </form>
+
+                            <!-- Comment Count / Link -->
+                            <a href="/posts/<%= post.id %>" class="action-btn comment-btn">
+                                <i class="fa-regular fa-comment"></i>
+                                <span><%= post.comment_count %></span>
+                            </a>
+
+                            <!-- View Post Detail -->
+                            <a href="/posts/<%= post.id %>" class="action-btn view-btn">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+
+                        <!-- Inline Comment Section -->
+                        <div class="post-comments-preview">
+                            <% if (post.comments && post.comments.length > 0) { %>
+                                <div class="comments-list">
+                                    <% post.comments.slice(-3).forEach(comment => { %>
+                                        <div class="comment-item">
+                                            <a href="/profile/<%= comment.username %>" class="comment-author">
+                                                <img src="<%= comment.avatar_url %>" alt="<%= comment.username %>" class="avatar-xs">
+                                                <strong>@<%= comment.username %></strong>
+                                            </a>
+                                            <span class="comment-text"><%= comment.content %></span>
+                                            
+                                            <% if (currentUser && (currentUser.id === comment.user_id || currentUser.id === post.user_id)) { %>
+                                                <form action="/posts/<%= post.id %>/comments/<%= comment.id %>/delete" method="POST" class="delete-comment-form" onsubmit="return confirm('Delete comment?');">
+                                                    <button type="submit" class="btn-text-danger" title="Delete comment"><i class="fa-solid fa-xmark"></i></button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    <% }); %>
+
+                                    <% if (post.comments.length > 3) { %>
+                                        <a href="/posts/<%= post.id %>" class="view-more-comments">
+                                            View all <%= post.comments.length %> comments...
+                                        </a>
+                                    <% } %>
+                                </div>
+                            <% } %>
+
+                            <!-- Inline Comment Input -->
+                            <% if (currentUser) { %>
+                                <form action="/posts/<%= post.id %>/comments" method="POST" class="comment-form">
+                                    <input type="text" name="content" placeholder="Write a comment..." required class="comment-input">
+                                    <button type="submit" class="btn-comment-submit"><i class="fa-solid fa-paper-plane"></i></button>
+                                </form>
+                            <% } %>
+                        </div>
+                    </article>
+                <% }); %>
+            </div>
+        <% } %>
+
+    </div>
+
+    <!-- Right Sidebar -->
+    <aside class="feed-sidebar">
+        <!-- Current User Card -->
+        <% if (currentUser) { %>
+            <div class="sidebar-card user-profile-summary">
+                <div class="user-summary-header">
+                    <img src="<%= currentUser.avatar_url %>" alt="<%= currentUser.username %>" class="avatar-lg">
+                    <div class="user-summary-info">
+                        <h3>@<%= currentUser.username %></h3>
+                        <p class="user-email"><%= currentUser.email %></p>
+                    </div>
+                </div>
+                <p class="user-bio"><%= currentUser.bio %></p>
+                <a href="/profile/<%= currentUser.username %>" class="btn btn-outline btn-block btn-sm">
+                    <i class="fa-solid fa-id-card"></i> View Full Profile
+                </a>
+            </div>
+        <% } %>
+
+        <!-- Suggested Accounts -->
+        <% if (suggestedUsers && suggestedUsers.length > 0) { %>
+            <div class="sidebar-card suggested-card">
+                <h3><i class="fa-solid fa-user-plus"></i> Suggested for you</h3>
+                <div class="suggested-list">
+                    <% suggestedUsers.forEach(sUser => { %>
+                        <div class="suggested-item">
+                            <a href="/profile/<%= sUser.username %>" class="suggested-info">
+                                <img src="<%= sUser.avatar_url %>" alt="<%= sUser.username %>" class="avatar-sm">
+                                <div class="suggested-names">
+                                    <span class="suggested-username">@<%= sUser.username %></span>
+                                </div>
+                            </a>
+                            <form action="/users/<%= sUser.id %>/follow" method="POST" class="follow-form" data-user-id="<%= sUser.id %>">
+                                <button type="submit" class="btn btn-primary btn-xs follow-btn">
+                                    Follow
+                                </button>
+                            </form>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+        <% } %>
+
+        <!-- CodeAlpha Info Widget -->
+        <div class="sidebar-card info-card">
+            <h4>CodeAlpha Task 2</h4>
+            <p>Full-Stack Social Media Application built with Node.js, Express, SQLite, and EJS.</p>
+        </div>
+    </aside>
+</div>
+
+<%- include('partials/footer') %>

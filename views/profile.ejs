@@ -1,0 +1,187 @@
+<%- include('partials/header') %>
+
+<div class="profile-container">
+    <!-- Profile Header Card -->
+    <div class="profile-card">
+        <div class="profile-cover"></div>
+        <div class="profile-main-info">
+            <div class="profile-avatar-wrapper">
+                <img src="<%= profileUser.avatar_url %>" alt="<%= profileUser.username %>" class="profile-avatar">
+            </div>
+
+            <div class="profile-details">
+                <div class="profile-top-row">
+                    <div class="profile-titles">
+                        <h2>@<%= profileUser.username %></h2>
+                        <span class="profile-joined">
+                            <i class="fa-regular fa-calendar-alt"></i> Joined <%= new Date(profileUser.created_at).toLocaleDateString(undefined, { month: 'short', year: 'numeric' }) %>
+                        </span>
+                    </div>
+
+                    <div class="profile-actions">
+                        <% if (isOwnProfile) { %>
+                            <button type="button" class="btn btn-outline btn-sm" id="toggle-edit-profile-btn">
+                                <i class="fa-solid fa-user-pen"></i> Edit Profile
+                            </button>
+                        <% } else if (currentUser) { %>
+                            <form action="/users/<%= profileUser.id %>/follow" method="POST" class="follow-form" data-user-id="<%= profileUser.id %>">
+                                <button type="submit" class="btn <%= isFollowing ? 'btn-secondary' : 'btn-primary' %> btn-sm follow-btn">
+                                    <%= isFollowing ? 'Following' : 'Follow' %>
+                                </button>
+                            </form>
+                        <% } else { %>
+                            <a href="/login" class="btn btn-primary btn-sm">Follow</a>
+                        <% } %>
+                    </div>
+                </div>
+
+                <p class="profile-bio"><%= profileUser.bio || 'No bio available.' %></p>
+
+                <!-- Profile Stats Row -->
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <span class="stat-number"><%= postsCount %></span>
+                        <span class="stat-label">Posts</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="followers-count"><%= followersCount %></span>
+                        <span class="stat-label">Followers</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number"><%= followingCount %></span>
+                        <span class="stat-label">Following</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Profile Form Collapsible Container -->
+        <% if (isOwnProfile) { %>
+            <div class="edit-profile-container hidden" id="edit-profile-section">
+                <hr class="divider">
+                <h3>Edit Profile Information</h3>
+                <form action="/profile/edit" method="POST" class="edit-profile-form">
+                    <div class="form-group">
+                        <label for="email"><i class="fa-solid fa-envelope"></i> Email Address</label>
+                        <input type="email" id="email" name="email" value="<%= profileUser.email %>" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="avatar_url"><i class="fa-solid fa-image"></i> Avatar URL</label>
+                        <input type="url" id="avatar_url" name="avatar_url" value="<%= profileUser.avatar_url %>" class="form-control" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bio"><i class="fa-solid fa-pen-nib"></i> Bio</label>
+                        <textarea id="bio" name="bio" class="form-control" rows="3"><%= profileUser.bio %></textarea>
+                    </div>
+
+                    <div class="form-buttons">
+                        <button type="button" class="btn btn-secondary btn-sm" id="cancel-edit-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa-solid fa-check"></i> Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        <% } %>
+    </div>
+
+    <!-- User Posts Feed -->
+    <div class="profile-posts-section">
+        <h3 class="section-title"><i class="fa-solid fa-newspaper"></i> Posts by @<%= profileUser.username %></h3>
+
+        <% if (posts.length === 0) { %>
+            <div class="empty-feed">
+                <i class="fa-solid fa-pen-to-square"></i>
+                <p>No posts published yet by @<%= profileUser.username %>.</p>
+            </div>
+        <% } else { %>
+            <div class="posts-feed">
+                <% posts.forEach(post => { %>
+                    <article class="post-card" id="post-<%= post.id %>">
+                        <!-- Post Header -->
+                        <div class="post-header">
+                            <a href="/profile/<%= post.username %>" class="post-author-info">
+                                <img src="<%= post.avatar_url %>" alt="<%= post.username %>" class="user-avatar">
+                                <div class="author-details">
+                                    <span class="author-name">@<%= post.username %></span>
+                                    <span class="post-time" title="<%= new Date(post.created_at).toLocaleString() %>">
+                                        <i class="fa-regular fa-clock"></i> <%= new Date(post.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                                    </span>
+                                </div>
+                            </a>
+
+                            <% if (currentUser && currentUser.id === post.user_id) { %>
+                                <form action="/posts/<%= post.id %>/delete" method="POST" onsubmit="return confirm('Delete this post?');">
+                                    <button type="submit" class="btn-icon text-danger" title="Delete Post">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            <% } %>
+                        </div>
+
+                        <!-- Post Content -->
+                        <div class="post-content">
+                            <p><%- post.content.replace(/\n/g, '<br>') %></p>
+                            <% if (post.image_url) { %>
+                                <div class="post-image-container">
+                                    <img src="<%= post.image_url %>" alt="Post attachment" class="post-image" loading="lazy">
+                                </div>
+                            <% } %>
+                        </div>
+
+                        <!-- Post Actions -->
+                        <div class="post-actions">
+                            <form action="/posts/<%= post.id %>/like" method="POST" class="like-form" data-post-id="<%= post.id %>">
+                                <button type="submit" class="action-btn like-btn <%= post.is_liked ? 'liked' : '' %>">
+                                    <i class="<%= post.is_liked ? 'fa-solid' : 'fa-regular' %> fa-heart"></i>
+                                    <span class="like-count"><%= post.like_count %></span>
+                                </button>
+                            </form>
+
+                            <a href="/posts/<%= post.id %>" class="action-btn comment-btn">
+                                <i class="fa-regular fa-comment"></i>
+                                <span><%= post.comment_count %></span>
+                            </a>
+
+                            <a href="/posts/<%= post.id %>" class="action-btn view-btn">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+
+                        <!-- Inline Comments Preview -->
+                        <div class="post-comments-preview">
+                            <% if (post.comments && post.comments.length > 0) { %>
+                                <div class="comments-list">
+                                    <% post.comments.slice(-3).forEach(comment => { %>
+                                        <div class="comment-item">
+                                            <a href="/profile/<%= comment.username %>" class="comment-author">
+                                                <img src="<%= comment.avatar_url %>" alt="<%= comment.username %>" class="avatar-xs">
+                                                <strong>@<%= comment.username %></strong>
+                                            </a>
+                                            <span class="comment-text"><%= comment.content %></span>
+
+                                            <% if (currentUser && (currentUser.id === comment.user_id || currentUser.id === post.user_id)) { %>
+                                                <form action="/posts/<%= post.id %>/comments/<%= comment.id %>/delete" method="POST" class="delete-comment-form" onsubmit="return confirm('Delete comment?');">
+                                                    <button type="submit" class="btn-text-danger" title="Delete comment"><i class="fa-solid fa-xmark"></i></button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } %>
+
+                            <% if (currentUser) { %>
+                                <form action="/posts/<%= post.id %>/comments" method="POST" class="comment-form">
+                                    <input type="text" name="content" placeholder="Write a comment..." required class="comment-input">
+                                    <button type="submit" class="btn-comment-submit"><i class="fa-solid fa-paper-plane"></i></button>
+                                </form>
+                            <% } %>
+                        </div>
+                    </article>
+                <% }); %>
+            </div>
+        <% } %>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

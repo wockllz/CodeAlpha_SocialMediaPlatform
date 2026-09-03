@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeAlpha Social Media Platform</title>
+    <!-- FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header class="navbar">
+        <div class="nav-container">
+            <a href="/" class="nav-brand">
+                <i class="fa-solid fa-code-branch brand-icon"></i>
+                <span class="brand-name">CodeAlpha<span class="brand-accent">Social</span></span>
+            </a>
+
+            <nav class="nav-links">
+                <a href="/" class="nav-item <%= path === '/' ? 'active' : '' %>">
+                    <i class="fa-solid fa-house"></i>
+                    <span>Feed</span>
+                </a>
+                
+                <% if (currentUser) { %>
+                    <a href="/profile/<%= currentUser.username %>" class="nav-item <%= path && path.startsWith('/profile') ? 'active' : '' %>">
+                        <img src="<%= currentUser.avatar_url %>" alt="<%= currentUser.username %>" class="nav-avatar">
+                        <span>Profile</span>
+                    </a>
+                    <a href="/logout" class="nav-item nav-logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                        <span>Logout</span>
+                    </a>
+                <% } else { %>
+                    <a href="/login" class="nav-item <%= path === '/login' ? 'active' : '' %>">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <span>Login</span>
+                    </a>
+                    <a href="/register" class="btn btn-primary nav-btn">
+                        <span>Register</span>
+                    </a>
+                <% } %>
+            </nav>
+        </div>
+    </header>
+    <main class="main-layout">

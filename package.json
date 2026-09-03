@@ -1,0 +1,28 @@
+{
+  "name": "codealpha-social-media-platform",
+  "version": "1.0.0",
+  "description": "Full-Stack Social Media Platform built with Node.js, Express, EJS, and SQLite for CodeAlpha Internship Task 2",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "seed": "node db/seed.js"
+  },
+  "keywords": [
+    "express",
+    "ejs",
+    "sqlite",
+    "social-media",
+    "codealpha"
+  ],
+  "author": "CodeAlpha Developer",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^11.8.1",
+    "body-parser": "^1.20.3",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1"
+  }
+}
