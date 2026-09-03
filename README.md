@@ -135,3 +135,5 @@ You can log in immediately using any of these seeded credentials:
 - [x] User registration & login with password hashing (`bcryptjs`)
 - [x] EJS view engine with clean, responsive custom CSS UI
 - [x] `.gitignore` file avoiding `node_modules` and database files
+
+**Ntshuxeko Sambo** — CodeAlpha Full Stack Development Intern (Student ID: CA/DF1/260876)
